@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+JIRA_USERNAME='u.sername'
+JIRA_PASSWORD='secret123'
+JIRA_URL='https://jira.example.com'
+APP_MESSAGE_USER='John Doe'
+APP_SLACK_WEBHOOK='https://hooks.slack.com/services/ZZZZZZ/XXXXXX/YYYYYYYYYYYYYYYY'

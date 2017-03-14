@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Slack channel for posting messages
+APP_SLACK_CHANNEL='#EXAMPLE-gen'
+
+# JIRA project key
+APP_JIRA_PROJECT='EXAMPLE'
+
+# Add users for default mentioning. Either @username or @here or @channel
+# See: https://get.slack.help/hc/en-us/articles/202009646-Make-an-announcement
+#APP_MESSAGE_CC='//cc @here'

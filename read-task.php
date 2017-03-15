@@ -114,7 +114,7 @@ class JiraTask
      */
     protected function getApiUrl()
     {
-        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task;// . '?fields=summary,issuetype,assignee';
+        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task . '?fields=summary,issuetype,assignee';
     }
 
     /**

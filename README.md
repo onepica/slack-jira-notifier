@@ -59,7 +59,7 @@ $ bin/slack-jira-task EXAMPLE-123
 ```
 You may post a message with additional comment (`@channel` will mention all people in a channel):
 ```shell
-$ bin/slack-jira-task EXAMPLE-123 '"Hey team, we got to *REOPEN* this issue. :wink:\n//cc @hannah_rest"'
+$ bin/slack-jira-task EXAMPLE-123 'Hey team, we got to *REOPEN* this issue. :wink:\n//cc @hannah_rest'
 ```
 ![alt tag](https://raw.githubusercontent.com/onepica/slack-jira-notifier/master/doc/example-post.jpg)
 

@@ -59,6 +59,15 @@ $ bin/slack-jira-task EXAMPLE-123
 ```
 You may post a message with additional comment (`@channel` will mention all people in a channel):
 ```shell
-$ bin/slack-jira-task EXAMPLE-123 '"Hey team, we got to *REOPEN* this issue. :wink:\n//cc @hannah_rest"'
+$ bin/slack-jira-task EXAMPLE-123 'Hey team, we got to *REOPEN* this issue. :wink:\n//cc @hannah_rest'
 ```
-![alt tag](https://raw.githubusercontent.com/onepica/slack-jira-notifier/master/doc/example-post.png)
+![alt tag](https://raw.githubusercontent.com/onepica/slack-jira-notifier/master/doc/example-post.jpg)
+
+### Message format
+- First line is a main text.
+- Grey line with user names are `Reporter Name -> Assignee Name`.
+- Link title use your posted JIRA issue key, and generates according to predefined format.
+- Sprint taken from the issue data path `fields/customfield_10600/` (it uses regular expression to get a sprint name `/name=([^,]+)/`).<br>
+And type taken by path `fields/issuetype/name`
+See more in the file [`read-task.php`](read-task.php).
+- "Posted by" line use your predefined custom name.

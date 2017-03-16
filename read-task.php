@@ -4,14 +4,31 @@ $password = 'qweqwe1';
 
 class JiraTask
 {
-    public function __construct($username, $password, $jiraUrl, $task)
+    /**
+     * Custom field codes
+     *
+     * @var array
+     */
+    protected $fieldCodes = [
+        'sprint' => 'customfield_10600',
+    ];
+
+    public function __construct($username, $password, $jiraUrl, $task, $fieldCodes = [])
     {
         $this->username = $username;
         $this->password = $password;
         $this->jiraUrl  = $jiraUrl;
         $this->task     = $task;
+
+        $this->fieldCodes = $fieldCodes + $this->fieldCodes;
     }
 
+    /**
+     * Fetch issue field
+     *
+     * @param $field
+     * @return string
+     */
     public function fetchIssueField($field)
     {
         switch ($field) {
@@ -25,7 +42,7 @@ class JiraTask
                 break;
 
             case 'sprint':
-                if (empty($this->fetchIssue()['fields']['customfield_10600'])) {
+                if ($this->readField('sprint')) {
                     return '';
                 }
                 preg_match(
@@ -41,24 +58,26 @@ class JiraTask
                 if (empty($this->fetchIssue()['fields']['assignee']['displayName'])) {
                     return '';
                 }
+
                 return $this->fetchIssue()['fields']['assignee']['displayName'];
 
             case 'reporter':
                 if (empty($this->fetchIssue()['fields']['reporter']['displayName'])) {
                     return '';
                 }
+
                 return $this->fetchIssue()['fields']['reporter']['displayName'];
 
             default:
-                if (!isset($this->fetchIssue()['fields'][$field])) {
-                    throw new Exception('No such field.');
-                }
-                return $this->fetchIssue()['fields'][$field];
+                return $this->readField($field);
         }
     }
 
     /**
      * Fetch issue
+     *
+     * @return array
+     * @throws Exception
      */
     public function fetchIssue()
     {
@@ -66,6 +85,61 @@ class JiraTask
             return json_decode($this->readCache(), JSON_OBJECT_AS_ARRAY);
         }
 
+        $result = $this->requestIssue();
+
+        $this->writeCache((string)$result);
+
+        return json_decode($result, JSON_OBJECT_AS_ARRAY);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function hasCache()
+    {
+        return is_file($this->getCacheFilePath());
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCacheFilePath()
+    {
+        return __DIR__ . '/cache/' . $this->getCacheFile();
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCacheFile()
+    {
+        return md5($this->getApiUrl()) . '.json';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getApiUrl()
+    {
+        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task . '?fields=summary,issuetype,assignee,reporter,customfield_10600';
+    }
+
+    /**
+     * @return string
+     */
+    protected function readCache()
+    {
+        return file_get_contents($this->getCacheFilePath());
+    }
+
+    /**
+     * Request issue data via JIRA API
+     *
+     * @return string
+     * @throws Exception
+     */
+    protected function requestIssue()
+    {
         $ch      = curl_init();
         $headers = [
             'Accept: application/json',
@@ -88,49 +162,7 @@ class JiraTask
             throw new Exception("cURL Error: $chError");
         }
 
-        $this->writeCache((string)$result);
-
-        return json_decode($result, JSON_OBJECT_AS_ARRAY);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function hasCache()
-    {
-        return is_file($this->getCacheFilePath());
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCacheFile()
-    {
-        return md5($this->getApiUrl()) . '.json';
-    }
-
-    /**
-     * @return string
-     */
-    protected function getApiUrl()
-    {
-        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task . '?fields=summary,issuetype,assignee';
-    }
-
-    /**
-     * @return string
-     */
-    protected function readCache()
-    {
-        return file_get_contents($this->getCacheFilePath());
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCacheFilePath()
-    {
-        return __DIR__ . '/cache/' . $this->getCacheFile();
+        return $result;
     }
 
     /**
@@ -145,6 +177,23 @@ class JiraTask
         }
 
         return file_put_contents($this->getCacheFilePath(), $data);
+    }
+
+    /**
+     * @param string $code
+     * @return mixed
+     */
+    protected function readField($code)
+    {
+        // try to load via associated alias in $this->fieldCodes
+        if (isset($this->fieldCodes[$code])
+            && isset($this->fetchIssue()['fields'][$this->fieldCodes[$code]])
+        ) {
+            $this->fetchIssue()['fields'][$this->fieldCodes[$code]];
+        }
+
+        return isset($this->fetchIssue()['fields'][$code])
+            ? $this->fetchIssue()['fields'][$code] : null;
     }
 }
 

@@ -94,6 +94,10 @@ task_key="${APP_JIRA_PROJECT}-${task_no}"
 slack_footer_icon=${APP_SLACK_FOOTER_ICON_URL}
 
 if [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_PASSWORD}" ]; then
+##
+# Debug JIRA issue schema
+#  ${php_bin} -f ./read-task.php "${JIRA_USERNAME}:${JIRA_PASSWORD}" "${JIRA_URL}" "${task_key}"; exit 55
+
   task_sprint=$(task_field 'sprint')
   task_assignee=$(task_field 'assignee')
   task_reporter=$(task_field 'reporter')

@@ -45,6 +45,15 @@ fi
 # Code
 #################################################################################
 
+check_error () {
+  local status=${1}
+  shift
+  if [ '0' != "${status}" ]; then
+    echo "$@" > /dev/stderr
+    exit ${status}
+  fi
+}
+
 check_php() {
   local bin php_zip_url
   bin=${1}
@@ -66,8 +75,7 @@ check_php() {
   fi
 
   if ! ${bin} -i | grep curl > /dev/null; then
-    echo 'error: PHP does not have enabled cURL module.'
-    exit 2
+    check_error 2 'error: PHP does not have enabled cURL module.'
   fi
 }
 
@@ -84,6 +92,9 @@ if test -z "${php_bin:-}"; then
   fi
 fi
 
+escape_quotes_for_post () {
+  echo $@ | sed -r 's|"|\\\x22|g'
+}
 check_php ${php_bin}
 
 task_sprint=''
@@ -94,6 +105,7 @@ task_key="${APP_JIRA_PROJECT}-${task_no}"
 slack_footer_icon=${APP_SLACK_FOOTER_ICON_URL}
 
 if [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_PASSWORD}" ]; then
+  printf 'Requesting JIRA issue...'
 ##
 # Debug JIRA issue schema
 #  ${php_bin} -f ./read-task.php "${JIRA_USERNAME}:${JIRA_PASSWORD}" "${JIRA_URL}" "${task_key}"; exit 55
@@ -108,7 +120,9 @@ if [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_PASSWORD}" ]; then
 
   task_type=$(task_field 'issuetype')
   task_summary=$(task_field 'summary')
+  echo 'OK'
 else
+  echo 'notice: JIRA issue cannot be requested.'
   task_type=${1}; shift
   task_summary=${1}; shift
 fi
@@ -120,17 +134,17 @@ if [ -n "${APP_MESSAGE_CC:-}" ]; then
 fi
 task_url=${JIRA_URL}'/browse/'${APP_JIRA_PROJECT}'-'${task_no}
 
-if [ ${task_type} == 'Bug' ]; then
+if [ "${task_type}" == 'Bug' ]; then
   attach_color='#E11'
-elif [ ${task_type} == 'Story' ]; then
+elif [ "${task_type}" == 'Story' ]; then
   attach_color='#EE1'
-elif [ ${task_type} == 'Task' ]; then
+elif [ "${task_type}" == 'Task' ]; then
   attach_color='#11E'
-elif [ ${task_type} == 'Question' ]; then
+elif [ "${task_type}" == 'Question' ]; then
   attach_color='#69F5FF'
-elif [ ${task_type} == 'Issue' ]; then
+elif [ "${task_type}" == 'Issue' ]; then
   attach_color='#911'
-elif [ ${task_type} == 'SubTask' ]; then
+elif [ "${task_type}" == 'SubTask' ] || [ "${task_type}" == 'Sub-Task Task' ]; then
   attach_color='#CCC'
 else
   echo 'error: Unknown issue type: '${task_type}
@@ -138,39 +152,47 @@ else
   exit 3
 fi
 
+slack_footer_text=$(
+  escape_quotes_for_post \
+    "$(printf "${APP_FOOTER_TEXT:-'JIRA %s. Posted by %s'}" \
+        "${task_type}" \
+        "${APP_MESSAGE_USER}"
+      )"
+)
+
 # disable parsing asterisks, or set -f
 set -o noglob
 slack_format='payload={
   "username": "JIRA",
   "channel": "'${APP_SLACK_CHANNEL}'",
-  "text": "'${slack_text}'",
+  "text": "'$(escape_quotes_for_post "${slack_text}")'",
   "as_user": "true",
   "link_names": "true",
   "icon_emoji": "'${APP_SLACK_ICON_EMOJI}'",
   "attachments": [
     {
-      "fallback": "New issue created.",
+      "fallback": "",
       "color": "'${attach_color}'",
       "pretext": "",
       "author_name": "'${task_reporter}' -> '${task_assignee}'",
       "title": "'${task_key}'",
       "title_link": "'${task_url}'",
-      "text": "'${task_summary}'",
+      "text": "'$(escape_quotes_for_post "${task_summary}")'",
       "fields": [
         {
           "title": "Type",
-          "value": "'${task_type}'",
+          "value": "'$(escape_quotes_for_post "${task_type}")'",
           "short": true
         },
         {
           "title": "Sprint",
-          "value": "'${task_sprint}'",
+          "value": "'$(escape_quotes_for_post "${task_sprint}")'",
           "short": true
         }
       ],
       "image_url": "",
       "thumb_url": "",
-      "footer": "'$(printf "${APP_FOOTER_TEXT:-'JIRA %s. Posted by %s'}" "${task_type}" "${APP_MESSAGE_USER}")'",
+      "footer": "'${slack_footer_text}'",
       "footer_icon": "'${slack_footer_icon}'",
       "ts": '$(date +%s)'
     }
@@ -178,6 +200,10 @@ slack_format='payload={
 }'
 set +o noglob
 
-curl -s --data-urlencode \
+result=$(curl -s --data-urlencode \
   "${slack_format}" \
-  ${APP_SLACK_WEBHOOK}
+  ${APP_SLACK_WEBHOOK})
+if test ! 'ok' -eq "${result}"; then
+  check_error 2 'error: Cannot post message.'"\n"'Response: '
+  echo ''
+fi

@@ -200,10 +200,13 @@ slack_format='payload={
 }'
 set +o noglob
 
+printf 'Posting the message to slack...'
 result=$(curl -s --data-urlencode \
   "${slack_format}" \
   ${APP_SLACK_WEBHOOK})
-if test ! 'ok' -eq "${result}"; then
+if [ 'ok' != "${result}" ]; then
+  echo 'FAILED'
   check_error 2 'error: Cannot post message.'"\n"'Response: '
-  echo ''
+else
+  echo 'OK'
 fi

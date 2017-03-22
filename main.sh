@@ -2,7 +2,10 @@
 
 #################################################################################
 # Slack Task notifier
-# $ bash ./slack-new-task.sh TYPE TASK TASK_SUMMARY [EXTRA_MESSAGE]
+# $ bash ./slack-new-task.sh TASK [EXTRA_MESSAGE]
+#
+# And please follow this format in case you don't have JIRA integration
+#    $ bash ./slack-new-task.sh TYPE TASK TASK_SUMMARY [EXTRA_MESSAGE]
 #################################################################################
 # Please edit params in files
 #   - params-base.sh
@@ -21,27 +24,6 @@ readonly __dir __file
 cd ${__dir}
 
 #################################################################################
-
-#################################################################################
-
-if test -z "${1:-}"; then
-  echo 'error: Set JIRA key as first argument.'
-  exit 3
-fi
-
-task_no=${1}; shift
-
-if test $(echo "${task_no}" | grep '-'); then
-  jira_project=$(echo ${task_no} | tr '-' ' ' | awk '{print $1}')
-  task_no=$(echo ${task_no} | tr '-' ' ' | awk '{print $2}')
-else
-  echo 'error: Set full JIRA key.'
-  exit 3
-fi
-
-. ./params.sh
-
-#################################################################################
 # Code
 #################################################################################
 
@@ -49,7 +31,7 @@ check_error () {
   local status=${1}
   shift
   if [ '0' != "${status}" ]; then
-    echo "$@" > /dev/stderr
+    echo "error: $@" > /dev/stderr
     exit ${status}
   fi
 }
@@ -84,7 +66,25 @@ task_field() {
   ${php_bin} -f ./read-task.php "${JIRA_USERNAME}:${JIRA_PASSWORD}" "${JIRA_URL}" "${task_key}" ${1}
 }
 
-if test -z "${php_bin:-}"; then
+escape_quotes_for_post () {
+  echo $@ | sed -r 's|"|\\\x22|g'
+}
+
+# Validate parameters
+if test -z "${1:-}" || [[ ! "${1}" =~ [A-Z][A-Z0-9]*-[0-9]+ ]]; then
+  check_error 3 'Set JIRA key as first argument.'
+fi
+
+task_no=${1}; shift
+
+if test $(echo "${task_no}" | grep '-'); then
+  jira_project=$(echo ${task_no} | tr '-' ' ' | awk '{print $1}')
+  task_no=$(echo ${task_no} | tr '-' ' ' | awk '{print $2}')
+else
+  check_error 3 'Set full JIRA key.'
+fi
+
+if [ -z "${php_bin:-}" ]; then
   php_bin=${__dir}'/php/php.exe'
   if type php 2>&1 > /dev/null; then
     # define global PHP
@@ -92,10 +92,9 @@ if test -z "${php_bin:-}"; then
   fi
 fi
 
-escape_quotes_for_post () {
-  echo $@ | sed -r 's|"|\\\x22|g'
-}
 check_php ${php_bin}
+
+. ./params.sh
 
 task_sprint=''
 task_assignee=''

@@ -51,7 +51,7 @@ class JiraTask
                     $matches
                 );
 
-                return $matches[1] ?: '';
+                return $matches && $matches[1] ? $matches[1] : '';
                 break;
 
             case 'assignee':
@@ -87,7 +87,7 @@ class JiraTask
 
         $result = $this->requestIssue();
 
-        $this->writeCache((string)$result);
+        $result && $this->writeCache((string)$result);
 
         return json_decode($result, JSON_OBJECT_AS_ARRAY);
     }

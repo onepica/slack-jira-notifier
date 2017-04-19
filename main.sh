@@ -143,6 +143,8 @@ elif [ "${task_type}" == 'Question' ]; then
   attach_color='#69F5FF'
 elif [ "${task_type}" == 'Issue' ]; then
   attach_color='#911'
+elif [ "${task_type}" == 'Change Request' ]; then
+  attach_color='#40ff00'
 elif [ "${task_type}" == 'SubTask' ] || [ "${task_type}" == 'Sub-Task Task' ]; then
   attach_color='#CCC'
 else

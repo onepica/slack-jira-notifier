@@ -132,21 +132,19 @@ if [ -n "${APP_MESSAGE_CC:-}" ]; then
     slack_text="\n"${APP_MESSAGE_CC}
 fi
 task_url=${JIRA_URL}'/browse/'${APP_JIRA_PROJECT}'-'${task_no}
+declare -A issue_color=(
+  ['Bug']='#E11'
+  ['Story']='#EE1'
+  ['Task']='#11E'
+  ['Question']='#69F5FF'
+  ['Issue']='#911'
+  ['Change Request']='#40ff00'
+  ['SubTask']='#CCC'
+  ['Sub-Task Task']='#CCC'
+)
 
-if [ "${task_type}" == 'Bug' ]; then
-  attach_color='#E11'
-elif [ "${task_type}" == 'Story' ]; then
-  attach_color='#EE1'
-elif [ "${task_type}" == 'Task' ]; then
-  attach_color='#11E'
-elif [ "${task_type}" == 'Question' ]; then
-  attach_color='#69F5FF'
-elif [ "${task_type}" == 'Issue' ]; then
-  attach_color='#911'
-elif [ "${task_type}" == 'Change Request' ]; then
-  attach_color='#40ff00'
-elif [ "${task_type}" == 'SubTask' ] || [ "${task_type}" == 'Sub-Task Task' ]; then
-  attach_color='#CCC'
+if [ -n "${issue_color[${task_type}]:-}" ]; then
+  attach_color=${issue_color[${task_type}]}
 else
   echo 'error: Unknown issue type: '${task_type}
   echo 'note: Please use one of following: Bug, Story, Task, SubTask, Issue, Question'

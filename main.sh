@@ -173,7 +173,7 @@ slack_format='payload={
       "fallback": "",
       "color": "'${attach_color}'",
       "pretext": "",
-      "author_name": "'${task_reporter}' -> '${task_assignee}'",
+      "author_name": "Reporter: '${task_reporter}'  Assignee: '${task_assignee}'",
       "title": "'${task_key}'",
       "title_link": "'${task_url}'",
       "text": "'$(escape_quotes_for_post "${task_summary}")'",

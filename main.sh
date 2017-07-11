@@ -109,6 +109,12 @@ if [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_PASSWORD}" ]; then
 # Debug JIRA issue schema
 #  ${php_bin} -f ./read-task.php "${JIRA_USERNAME}:${JIRA_PASSWORD}" "${JIRA_URL}" "${task_key}"; exit 55
 
+  task_type=$(task_field 'issuetype')
+  if [ -z "${task_type}" ]; then
+    echo 'FAILED'
+    check_error 4 'Cannot load issue.'
+  fi
+
   task_sprint=$(task_field 'sprint')
   task_assignee=$(task_field 'assignee')
   task_reporter=$(task_field 'reporter')
@@ -117,8 +123,8 @@ if [ -n "${JIRA_USERNAME}" ] && [ -n "${JIRA_PASSWORD}" ]; then
       task_sprint='Backlog'
   fi
 
-  task_type=$(task_field 'issuetype')
   task_summary=$(task_field 'summary')
+
   echo 'OK'
 else
   echo 'notice: JIRA issue cannot be requested.'

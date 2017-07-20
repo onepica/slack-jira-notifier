@@ -122,10 +122,14 @@ class JiraTask
      */
     protected function getApiUrl()
     {
-        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task . '?fields=summary,issuetype,assignee,reporter,customfield_10600';
+        return $this->jiraUrl . '/rest/api/2/issue/' . $this->task 
+            . '?fields=summary,issuetype,assignee,reporter,'
+            . $this->fieldCodes['sprint'];
     }
 
     /**
+     * Read cached data
+     *
      * @return string
      */
     protected function readCache()

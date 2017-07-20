@@ -12,5 +12,5 @@ APP_JIRA_PROJECT=${jira_project}
 if [ -f "./params-base-${jira_project}.sh" ]; then
   . "./params-base-${jira_project}.sh"
 else
-  check_error 3 'There is related configuration file for this project. PLease describe it in file: '"\n${__dir}/params-base-${jira_project}.sh"
+  check_error 3 'There is related configuration file for this project. '"\n"'Please describe it in file: '"\n${__dir}/params-base-${jira_project}.sh"
 fi

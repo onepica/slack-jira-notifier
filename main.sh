@@ -57,7 +57,7 @@ check_php() {
   fi
 
   if ! ${bin} -i | grep curl > /dev/null; then
-    check_error 2 'error: PHP does not have enabled cURL module.'
+    check_error 2 'PHP does not have enabled cURL module.'
   fi
 }
 

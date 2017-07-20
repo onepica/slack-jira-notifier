@@ -1,6 +1,4 @@
 <?php
-$username = 'a.roslik';
-$password = 'qweqwe1';
 
 class JiraTask
 {

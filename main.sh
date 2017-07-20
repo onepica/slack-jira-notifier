@@ -31,7 +31,7 @@ check_error () {
   local status=${1}
   shift
   if [ '0' != "${status}" ]; then
-    echo "error: $@" > /dev/stderr
+    echo -e "error: $@" > /dev/stderr
     exit ${status}
   fi
 }

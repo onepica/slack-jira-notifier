@@ -28,6 +28,9 @@ Create file `params-base.sh` in any editor with content:
 ```shell
 #!/usr/bin/env bash
 
+# base connection parameters
+
+JIRA_URL='https://jira.example.com/'
 JIRA_USERNAME='u.sername'
 JIRA_PASSWORD='secret123'
 APP_MESSAGE_USER='John Doe'

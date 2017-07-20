@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * API class for fetching info about a JIRA issues
+ */
 class JiraTask
 {
     /**
